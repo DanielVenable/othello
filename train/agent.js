@@ -46,7 +46,7 @@ export class Agent {
         }
 
         console.assert(this.game.turn === this.color);
-        this.didValidAction = this.game.doAction(action);
+        this.game.doAction(action);
 
         this.lastState = state;
         this.lastAction = action;
