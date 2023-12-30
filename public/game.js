@@ -29,7 +29,7 @@ export class Game {
      * @param {Number} x the x position of the move
      * @param {Number} y the y position of the move
      * @param {-1 | 1} player asserts the correct player is moving
-     * @returns {Boolean} ```true``` if the move was valid, ```false``` otherwise
+     * @returns {[Number, Number][]} an array of pieces that flipped
      */
     move(x, y) {
         // find all pieces that would flip
@@ -61,6 +61,9 @@ export class Game {
             throw new Error(`Invalid move: ${x}, ${y}`);
         }
 
+        // place the piece
+        this.board[x][y] = this.turn;
+
         // pass the turn
         this.turn = -this.turn;
 
@@ -70,13 +73,16 @@ export class Game {
             if (!this.#updateValidMoves()) {
                 // if there are still no valid moves, the game ends
                 this.isDone = true;
+                this.turn = undefined;
             }
         }
+
+        return toFlip;
     }
 
     /**
      * @param {Number} action a number from 0 to 63 saying what square to go in
-     * @returns {Boolean} ```true``` if the move was valid, ```false``` otherwise
+     * @returns {[Number, Number][]} an array of pieces that flipped
      */
     doAction(action) {
         return this.move(Math.floor(action / 8), action % 8);
@@ -113,20 +119,22 @@ export class Game {
         let anyMoves = false;
         for (let x = 0; x < 8; x++) {
             square: for (let y = 0; y < 8; y++) {
-                for (let direction = 0; direction < 8; direction++) {
-                    let distance = 0, pos, piece;
-                    do {
-                        distance++;
-                        pos = this.#getPos(x, y, direction, distance);
-                        piece = this.board[pos[0]]?.[pos[1]];
+                if (this.board[x][y] === EMPTY) {
+                    for (let direction = 0; direction < 8; direction++) {
+                        let distance = 0, pos, piece;
+                        do {
+                            distance++;
+                            pos = this.#getPos(x, y, direction, distance);
+                            piece = this.board[pos[0]]?.[pos[1]];
 
-                        if (piece === this.turn && distance > 1) {
-                            // the move is valid, so stop looking
-                            this.validMoves[8 * x + y] = 1;
-                            anyMoves = true;
-                            continue square;
-                        }
-                    } while (piece === -this.turn);
+                            if (piece === this.turn && distance > 1) {
+                                // the move is valid, so stop looking
+                                this.validMoves[8 * x + y] = 1;
+                                anyMoves = true;
+                                continue square;
+                            }
+                        } while (piece === -this.turn);
+                    }
                 }
                 this.validMoves[8 * x + y] = 0;
             }
