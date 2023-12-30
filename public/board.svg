@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg version="1.1" width="800" height="800" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <g id="square">
+            <rect x="0" y="0" width="1" height="1" stroke="black" stroke-width="0.05" fill="green"/>
+        </g>
+        <g id="black">
+            <use href="#square"/>
+            <circle cx="0.5" cy="0.5" r="0.45" fill="black"/>
+        </g>
+        <g id="white">
+            <use href="#square"/>
+            <circle cx="0.5" cy="0.5" r="0.45" fill="white"/>
+        </g>
+        <g id="flip-to-black">
+            <use href="#square"/>
+            <ellipse cx="0.5" cy="0.5" rx="0.45" ry="0.45" fill="white">
+                <animate attributeName="ry" values="0.45;0;0.45" dur="0.5s" keyTimes="0;0.5;1" begin="0s"/>
+                <animate attributeName="fill" from="white" to="black" dur="0.001s" begin="0.25s"/>
+            </ellipse>
+        </g>
+        <g id="flip-to-white">
+            <use href="#square"/>
+            <ellipse cx="0.5" cy="0.5" rx="0.45" ry="0.45" fill="black">
+                <animate attributeName="ry" values="0.45;0;0.45" dur="0.5s" keyTimes="0;0.5;1" begin="0s"/>
+                <animate attributeName="fill" from="black" to="white" dur="0.001s" begin="0.25s"/>
+            </ellipse>
+        </g>
+    </defs>
+
+    <use href="#square" x="0" y="0"/>
+    <use href="#square" x="0" y="1"/>
+    <use href="#square" x="0" y="2"/>
+    <use href="#square" x="0" y="3"/>
+    <use href="#square" x="0" y="4"/>
+    <use href="#square" x="0" y="5"/>
+    <use href="#square" x="0" y="6"/>
+    <use href="#square" x="0" y="7"/>
+
+    <use href="#square" x="1" y="0"/>
+    <use href="#square" x="1" y="1"/>
+    <use href="#square" x="1" y="2"/>
+    <use href="#square" x="1" y="3"/>
+    <use href="#square" x="1" y="4"/>
+    <use href="#square" x="1" y="5"/>
+    <use href="#square" x="1" y="6"/>
+    <use href="#square" x="1" y="7"/>
+
+    <use href="#square" x="2" y="0"/>
+    <use href="#square" x="2" y="1"/>
+    <use href="#square" x="2" y="2"/>
+    <use href="#square" x="2" y="3"/>
+    <use href="#square" x="2" y="4"/>
+    <use href="#square" x="2" y="5"/>
+    <use href="#square" x="2" y="6"/>
+    <use href="#square" x="2" y="7"/>
+    
+    <use href="#square" x="3" y="0"/>
+    <use href="#square" x="3" y="1"/>
+    <use href="#square" x="3" y="2"/>
+    <use href="#white"  x="3" y="3"/>
+    <use href="#black"  x="3" y="4"/>
+    <use href="#square" x="3" y="5"/>
+    <use href="#square" x="3" y="6"/>
+    <use href="#square" x="3" y="7"/>
+    
+    <use href="#square" x="4" y="0"/>
+    <use href="#square" x="4" y="1"/>
+    <use href="#square" x="4" y="2"/>
+    <use href="#black"  x="4" y="3"/>
+    <use href="#white"  x="4" y="4"/>
+    <use href="#square" x="4" y="5"/>
+    <use href="#square" x="4" y="6"/>
+    <use href="#square" x="4" y="7"/>
+    
+    <use href="#square" x="5" y="0"/>
+    <use href="#square" x="5" y="1"/>
+    <use href="#square" x="5" y="2"/>
+    <use href="#square" x="5" y="3"/>
+    <use href="#square" x="5" y="4"/>
+    <use href="#square" x="5" y="5"/>
+    <use href="#square" x="5" y="6"/>
+    <use href="#square" x="5" y="7"/>
+    
+    <use href="#square" x="6" y="0"/>
+    <use href="#square" x="6" y="1"/>
+    <use href="#square" x="6" y="2"/>
+    <use href="#square" x="6" y="3"/>
+    <use href="#square" x="6" y="4"/>
+    <use href="#square" x="6" y="5"/>
+    <use href="#square" x="6" y="6"/>
+    <use href="#square" x="6" y="7"/>
+    
+    <use href="#square" x="7" y="0"/>
+    <use href="#square" x="7" y="1"/>
+    <use href="#square" x="7" y="2"/>
+    <use href="#square" x="7" y="3"/>
+    <use href="#square" x="7" y="4"/>
+    <use href="#square" x="7" y="5"/>
+    <use href="#square" x="7" y="6"/>
+    <use href="#square" x="7" y="7"/>
+</svg>
