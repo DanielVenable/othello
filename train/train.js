@@ -21,6 +21,9 @@ function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize
     // fill the replay buffer with random moves without learning
     for (let i = 0; i < replayBufferSize * 2; i++) {
         (game.turn === BLACK ? player1 : player2).doMove();
+        if (game.isDone) {
+            game.reset();
+        }
         replayBar.increment();
     }
 
