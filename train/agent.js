@@ -27,7 +27,7 @@ export class Agent {
     }
     
     /** pick one move */
-    doMove() {
+    async doMove() {
         const state = this.game.stateTensor(tf.tensor2d);
 
         if (this.lastState) {
@@ -46,7 +46,9 @@ export class Agent {
             action = this.game.randomMove();
         } else {
             // find the best action
-            action = this.game.bestMove(this.onlineNN, tf.stack([state]));
+            const stackState = tf.stack([state]);
+            action = await this.game.bestMove(this.onlineNN, stackState);
+            stackState.dispose();
         }
 
         console.assert(this.game.turn === this.color);
@@ -62,7 +64,7 @@ export class Agent {
      */
     reward(state) {
         if (this.rewardEveryStep) {
-            return state.sum().dataSync()[0] - this.lastState.sum().dataSync()[0];
+            return state.sum().sub(this.lastState.sum());
         } else {
             return this.game.isDone ? state.sum() : 0;
         }
@@ -108,12 +110,9 @@ export class Agent {
         }
 
         tf.tidy(() => {
-            // Get a batch of examples from the replay buffer.
-            
             // Calculate the gradients of the loss function with respect 
             // to the weights of the online DQN.
-            const grads = tf.variableGrads(loss);
-            optimizer.applyGradients(grads.grads);
+            optimizer.applyGradients(tf.variableGrads(loss).grads);
         });
     }
 }
@@ -125,7 +124,7 @@ function createNN(hiddenLayers, units) {
     net.add(tf.layers.flatten({ inputShape: [8, 8] }));
 
     // hidden layers
-    for (let i = 0; i < layers; i++) {
+    for (let i = 0; i < hiddenLayers; i++) {
         net.add(tf.layers.dense({ units, activation: 'relu' }));
     }
 
@@ -149,7 +148,9 @@ class ReplayMemory {
         if (this.items.length < this.maxSize) {
             this.items.push(item);
         } else {
-            this.items[this.index].state.dispose(); // dispose tensor to prevent memory leaks
+            // dispose tensors to prevent memory leaks
+            tf.dispose([this.items[this.index].state, this.items[this.index].reward]);
+
             this.items[this.index] = item;
             this.index = (this.index + 1) % this.items.length;
         }

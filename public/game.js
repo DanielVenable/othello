@@ -107,11 +107,14 @@ export class Game {
     }
 
     /** find the best move */
-    bestMove(net, state) {
-        return net.predict(state) // get Q values for all moves
+    async bestMove(net, state) {
+        return (await
+            net.predict(state) // get Q values for all moves
             .flatten() // flatten to 1d tensor
             .add(this.validMoves.map(a => a === 0 ? -Infinity : 0)) // map invalid moves to -Infinity
-            .argMax().dataSync()[0]; // find highest rated move
+            .argMax() // find highest rated move
+            .data() // extract the data
+        )[0];
     }
 
     /** @returns {[Number, Number]} the scores of the two players, with black first */

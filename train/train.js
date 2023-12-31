@@ -4,7 +4,7 @@ import { SingleBar, Presets } from 'cli-progress';
 import { Agent } from './agent.js';
 import { Game, BLACK, WHITE } from '../public/game.js';
 
-function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
+async function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
     const game = new Game,
         player1 = new Agent(game, BLACK, ...config),
         player2 = new Agent(game, WHITE, ...config),
@@ -22,7 +22,7 @@ function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
 
     // fill the replay buffer with random moves without learning
     for (let i = 0; i < replayBufferSize * 2; i++) {
-        (game.turn === BLACK ? player1 : player2).doMove();
+        await (game.turn === BLACK ? player1 : player2).doMove();
         if (game.isDone) {
             game.reset();
         }
@@ -52,7 +52,7 @@ function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
 
         currentPlayer.trainOnReplayBatch(batchSize, optimizer);
 
-        currentPlayer.doMove();
+        await currentPlayer.doMove();
 
         if (game.isDone) {
             game.reset();
@@ -68,7 +68,7 @@ function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
     return [player1.onlineNN, player2.onlineNN];
 }
 
-const [net] = train(
+const [net] = await train(
     process.env.STEPS ?? 100000,
     process.env.BATCH_SIZE ?? 1000,
     process.env.LEARNING_RATE ?? 0.01,

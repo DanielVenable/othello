@@ -26,7 +26,7 @@ for (let i = 0; i < models.length; i++) {
 
         while (!game.isDone) {
             const state = game.stateTensor(tf.tensor2d);
-            game.doAction(game.bestMove(game.turn === BLACK ? net1 : net2, tf.stack([state])));
+            game.doAction(await game.bestMove(game.turn === BLACK ? net1 : net2, tf.stack([state])));
             state.dispose();
         }
 
