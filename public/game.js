@@ -114,6 +114,18 @@ export class Game {
             .argMax().dataSync()[0]; // find highest rated move
     }
 
+    /** @returns {[Number, Number]} the scores of the two players, with black first */
+    scores() {
+        let black = 0, white = 0;
+        for (const column of this.board) {
+            for (const square of column) {
+                if (square === BLACK) black++;
+                else if (square === WHITE) white++;
+            }
+        }
+        return [black, white];
+    }
+
     #updateValidMoves() {
         this.validMoves = [];
         let anyMoves = false;
