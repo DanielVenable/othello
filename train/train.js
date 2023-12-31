@@ -4,10 +4,10 @@ import { SingleBar, Presets } from 'cli-progress';
 import { Agent } from './agent.js';
 import { Game, BLACK, WHITE } from '../public/game.js';
 
-async function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
+async function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize, ...config) {
     const game = new Game,
-        player1 = new Agent(game, BLACK, ...config),
-        player2 = new Agent(game, WHITE, ...config),
+        player1 = new Agent(game, BLACK, replayBufferSize, ...config),
+        player2 = new Agent(game, WHITE, replayBufferSize, ...config),
         optimizer = tf.train.adam(learningRate);
 
     const barFormat = '{bar} {value}/{total} | {percentage}% | {eta_formatted} remaining';
