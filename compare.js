@@ -31,8 +31,8 @@ for (let i = 0; i < models.length; i++) {
         }
 
         const [score1, score2] = game.scores();
-        scores[i] += score1;
-        scores[j] += score2;
+        scores[i] += score1 - score2;
+        scores[j] += score2 - score1;
 
         game.reset();
     }
@@ -40,9 +40,7 @@ for (let i = 0; i < models.length; i++) {
 
 console.log('Final average scores:');
 
-const gamesPlayed = models.length ** 2 - models.length;
-
 // sort by score descending
 for (const key of [...scores.keys()].sort((a, b) => scores[a] - scores[b])) {
-    console.log('%s: %f', names[key], (scores[key] / gamesPlayed).toFixed(2));
+    console.log('%s: %f', names[key], (scores[key] / (models.length - 1) / 2).toFixed(2));
 }
