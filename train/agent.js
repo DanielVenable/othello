@@ -46,9 +46,10 @@ export class Agent {
             action = this.game.randomMove();
         } else {
             // find the best action
-            const stackState = tf.stack([state]);
-            action = await this.game.bestMove(this.onlineNN, stackState);
-            stackState.dispose();
+            tf.tidy(() => {
+                action = this.game.bestMove(this.onlineNN, tf.stack([state]));
+            });
+            action = await action;
         }
 
         console.assert(this.game.turn === this.color);
