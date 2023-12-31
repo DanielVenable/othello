@@ -3,24 +3,27 @@ import * as tf from '@tensorflow/tfjs-node';
 import { Game } from '../public/game.js';
 
 export class Agent {
-    targetNN = createNN();
-    onlineNN = createNN();
-
     /** @type {tf.Tensor2D} */ lastState;
     /** @type {Number} */ lastAction;
 
     /**
      * @param {Game} game
      * @param {-1 | 1} color black or white
-     * @param {Number} epsilon how often to pick a random move
      * @param {Number} replayBufferSize how much game history to store in memory
+     * @param {Boolean} rewardEveryStep does it give rewards after every step or only at the end
+     * @param {Number} epsilon how often to pick a random move
+     * @param {Number} layers how many hidden layers in the model
+     * @param {Number} units how many units those hidden layers have
      */
-    constructor(game, color, replayBufferSize, rewardEveryStep, epsilon) {
+    constructor(game, color, replayBufferSize, rewardEveryStep, epsilon, layers, units) {
         this.game = game;
         this.color = color;
         this.rewardEveryStep = rewardEveryStep;
         this.epsilon = epsilon;
         this.replayMemory = new ReplayMemory(replayBufferSize);
+
+        this.targetNN = createNN(layers, units);
+        this.onlineNN = createNN(layers, units);
     }
     
     /** pick one move */
@@ -115,16 +118,16 @@ export class Agent {
     }
 }
 
-function createNN() {
+function createNN(hiddenLayers, units) {
     const net = tf.sequential();
 
     // input and flatten layers
     net.add(tf.layers.flatten({ inputShape: [8, 8] }));
 
     // hidden layers
-    // may want to adjust these to see what works
-    net.add(tf.layers.dense({ units: 24, activation: 'relu' }));
-    net.add(tf.layers.dense({ units: 24, activation: 'relu' }));
+    for (let i = 0; i < layers; i++) {
+        net.add(tf.layers.dense({ units, activation: 'relu' }));
+    }
 
     // output layer. there are 64 possible actions, so there are 64 units at end
     net.add(tf.layers.dense({ units: 64, activation: 'linear' }));

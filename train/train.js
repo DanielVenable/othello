@@ -4,12 +4,10 @@ import { SingleBar, Presets } from 'cli-progress';
 import { Agent } from './agent.js';
 import { Game, BLACK, WHITE } from '../public/game.js';
 
-function train(
-        steps, batchSize, learningRate, syncEveryFrames,
-        replayBufferSize, rewardEveryStep, epsilon) {
+function train(steps, batchSize, learningRate, syncEveryFrames, ...config) {
     const game = new Game,
-        player1 = new Agent(game, BLACK, replayBufferSize, rewardEveryStep, epsilon),
-        player2 = new Agent(game, WHITE, replayBufferSize, rewardEveryStep, epsilon),
+        player1 = new Agent(game, BLACK, ...config),
+        player2 = new Agent(game, WHITE, ...config),
         optimizer = tf.train.adam(learningRate);
 
     const barFormat = '{bar} {value}/{total} | {percentage}% | {eta_formatted} remaining';
@@ -33,7 +31,7 @@ function train(
 
     replayBar.stop();
 
-    console.log('Replay buffer initialized!');
+    console.log('Replay buffer initialized.');
 
     // show another progress bar
     const trainingBar = new SingleBar({
@@ -71,16 +69,18 @@ function train(
 }
 
 const [net] = train(
-    process.env.STEPS ?? 1000,
+    process.env.STEPS ?? 100000,
     process.env.BATCH_SIZE ?? 1000,
-    process.env.LEARNING_RATE ?? 0.001,
+    process.env.LEARNING_RATE ?? 0.01,
     process.env.SYNC_FREQ ?? 300,
     process.env.REPLAY_BUFFER_SIZE ?? 20000,
     !!+process.env.REWARD_EVERY_STEP,
-    process.env.epsilon ?? 0.1);
+    process.env.epsilon ?? 0.1,
+    process.env.HIDDEN_LAYERS ?? 2,
+    process.env.UNITS ?? 24);
 
 await net.save(`file://${process.cwd()}/public/models/${process.env.NAME ?? 'model'}`);
 
-console.log('Model saved!');
+console.log('Model saved.');
 
 process.exit();
