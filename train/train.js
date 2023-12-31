@@ -27,6 +27,8 @@ function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize
         replayBar.increment();
     }
 
+    replayBar.stop();
+
     console.log('Replay buffer initialized!');
 
     // show another progress bar
@@ -57,12 +59,22 @@ function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize
         trainingBar.increment();
     }
 
+    trainingBar.stop();
+
     console.log('Done!');
 
     return [player1.onlineNN, player2.onlineNN];
 }
 
-// adjust these numbers
-const [net] = train(1000, 1000, 0.001, 300, 20000);
+const [net] = train(
+    process.env.STEPS ?? 1000,
+    process.env.BATCH_SIZE ?? 1000,
+    process.env.LEARNING_RATE ?? 0.001,
+    process.env.SYNC_FREQ ?? 300,
+    process.env.REPLAY_BUFFER_SIZE ?? 20000);
 
-net.save(`file://${process.cwd()}/public/model`);
+await net.save(`file://${process.cwd()}/public/models/${process.env.NAME ?? 'model'}`);
+
+console.log('Model saved!');
+
+process.exit();

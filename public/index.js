@@ -1,6 +1,7 @@
 import { Game, BLACK, WHITE } from './game.js';
 
-const loadModel = tf.loadLayersModel('model/model.json');
+const modelName = 'easy';
+const loadModel = tf.loadLayersModel(`models/${modelName}/model.json`);
 document.querySelector('object').addEventListener('load', async function () {
     const playerTurn = BLACK;
     const botTurn = WHITE;
