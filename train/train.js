@@ -4,15 +4,19 @@ import { SingleBar, Presets } from 'cli-progress';
 import { Agent } from './agent.js';
 import { Game, BLACK, WHITE } from '../public/game.js';
 
-function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize) {
+function train(
+        steps, batchSize, learningRate, syncEveryFrames,
+        replayBufferSize, rewardEveryStep, epsilon) {
     const game = new Game,
-        player1 = new Agent(game, BLACK, replayBufferSize),
-        player2 = new Agent(game, WHITE, replayBufferSize),
+        player1 = new Agent(game, BLACK, replayBufferSize, rewardEveryStep, epsilon),
+        player2 = new Agent(game, WHITE, replayBufferSize, rewardEveryStep, epsilon),
         optimizer = tf.train.adam(learningRate);
+
+    const barFormat = '{bar} {value}/{total} | {percentage}% | {eta_formatted} remaining';
 
     // show a progress bar
     const replayBar = new SingleBar({
-        format: 'Initializing replay buffer: {bar} {value}/{total} | {percentage}% | {eta_formatted} remaining',
+        format: 'Initializing replay buffer: ' + barFormat,
         hideCursor: true
     }, Presets.shades_classic);
 
@@ -33,7 +37,7 @@ function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize
 
     // show another progress bar
     const trainingBar = new SingleBar({
-        format: 'Training: {bar} {value}/{total} | {percentage}% | {eta_formatted} remaining',
+        format: 'Training: ' + barFormat,
         hideCursor: true
     }, Presets.shades_classic);
 
@@ -71,7 +75,9 @@ const [net] = train(
     process.env.BATCH_SIZE ?? 1000,
     process.env.LEARNING_RATE ?? 0.001,
     process.env.SYNC_FREQ ?? 300,
-    process.env.REPLAY_BUFFER_SIZE ?? 20000);
+    process.env.REPLAY_BUFFER_SIZE ?? 20000,
+    !!+process.env.REWARD_EVERY_STEP,
+    process.env.epsilon ?? 0.1);
 
 await net.save(`file://${process.cwd()}/public/models/${process.env.NAME ?? 'model'}`);
 

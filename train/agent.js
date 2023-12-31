@@ -15,9 +15,10 @@ export class Agent {
      * @param {Number} epsilon how often to pick a random move
      * @param {Number} replayBufferSize how much game history to store in memory
      */
-    constructor(game, color, replayBufferSize, epsilon = 0.1) {
+    constructor(game, color, replayBufferSize, rewardEveryStep, epsilon) {
         this.game = game;
         this.color = color;
+        this.rewardEveryStep = rewardEveryStep;
         this.epsilon = epsilon;
         this.replayMemory = new ReplayMemory(replayBufferSize);
     }
@@ -57,12 +58,11 @@ export class Agent {
      * @returns {Number} the reward
      */
     reward(state) {
-        return this.game.isDone ? state.sum() : 0;
-
-        // or maybe:
-        // return state.sum() - this.lastState.sum();
-
-        // not sure which is better
+        if (this.rewardEveryStep) {
+            return state.sum().dataSync()[0] - this.lastState.sum().dataSync()[0];
+        } else {
+            return this.game.isDone ? state.sum() : 0;
+        }
     }
 
     /** copy weights from online network to target network */
