@@ -67,7 +67,7 @@ export class Agent {
         if (this.rewardEveryStep) {
             return state.sum().sub(this.lastState.sum());
         } else {
-            return this.game.isDone ? state.sum() : 0;
+            return this.game.isDone ? state.sum() : tf.scalar(0);
         }
     }
 
@@ -93,7 +93,7 @@ export class Agent {
             // compute the Q value of the next state.
             // it is R if the next state is terminal
             // R + max Q(next_state) if the next state is not terminal
-            const rewardTensor = tf.tensor1d(batch.map(({ reward }) => reward));
+            const rewardTensor = tf.stack(batch.map(({ reward }) => reward));
             const nextStateTensor = tf.stack(batch.map(({ nextState }) => nextState));
 
             // target net is used here for stability during training
