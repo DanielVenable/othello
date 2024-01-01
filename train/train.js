@@ -74,12 +74,12 @@ const [net] = await train(
     process.env.LEARNING_RATE ?? 0.01,
     process.env.SYNC_FREQ ?? 300,
     process.env.REPLAY_BUFFER_SIZE ?? 20000,
-    !!+process.env.REWARD_EVERY_STEP,
-    process.env.epsilon ?? 0.1,
-    process.env.HIDDEN_LAYERS ?? 2,
-    process.env.UNITS ?? 24);
+    !!+(process.env.REWARD_EVERY_STEP ?? 1),
+    process.env.EPSILON ?? 0.1,
+    +(process.env.HIDDEN_LAYERS ?? 2),
+    +(process.env.UNITS ?? 24));
 
-await net.save(`file://${process.cwd()}/public/models/${process.env.NAME ?? 'model'}`);
+await net.save(`file://${process.cwd()}/public/models/${process.env.MODEL_NAME ?? 'model'}`);
 
 console.log('Model saved.');
 
