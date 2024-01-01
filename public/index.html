@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="index.js" type="module" defer></script>
+    <link rel="stylesheet" href="style.css">
     <title>Othello</title>
 </head>
 <body>
-    <object data="board.svg" type="image/svg+xml"></object>
+    <div class="container">
+        <object id="board" data="board.svg" type="image/svg+xml"></object>
+    </div>
+    <div class="container" id="disable"></div>
+    <div class="container" id="loading" hidden>
+        Loading...
+    </div>
+    <div class="container" id="buttons">
+        <button data-model-name="easy">Easy</button>
+        <button data-model-name="medium">Medium</button>
+    </div>
+    <div class="container" id="done" hidden>
+        <div>
+            Scores:
+            Black: <span id="blackScore"></span>,
+            White: <span id="whiteScore"></span>
+        </div>
+    </div>
 </body>
 </html>

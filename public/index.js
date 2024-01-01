@@ -1,13 +1,21 @@
 import { Game, BLACK, WHITE } from './game.js';
 
-const modelName = 'easy';
-const loadModel = tf.loadLayersModel(`models/${modelName}/model.json`);
-document.querySelector('object').addEventListener('load', async function () {
+const load = new Promise(resolve => document.querySelector('#board').addEventListener('load', resolve));
+
+async function play(modelName) {
+    document.querySelector('#buttons').hidden = true;
+    document.querySelector('#loading').hidden = false;
+
     const playerTurn = BLACK;
     const botTurn = WHITE;
-    const model = await loadModel;
+    const model = await tf.loadLayersModel(`models/${modelName}/model.json`);
     const game = new Game;
-    const board = this.contentDocument;
+
+    await load;
+    const board = document.querySelector('#board').contentDocument;
+
+    document.querySelector('#loading').hidden = true;
+    document.querySelector('#disable').hidden = true;
 
     board.addEventListener('click', ({ target }) => {
         if (game.turn === playerTurn) {
@@ -18,11 +26,6 @@ document.querySelector('object').addEventListener('load', async function () {
             }
         }
     });
-
-    function botGo() {
-        const action = game.bestMove(model, tf.stack([game.stateTensor(tf.tensor2d)]));
-        goOn(Math.floor(action / 8), action % 8);
-    }
 
     function goOn(x, y) {
         const color = game.turn;
@@ -37,7 +40,28 @@ document.querySelector('object').addEventListener('load', async function () {
         }
         
         if (game.turn === botTurn) {
-            setTimeout(botGo, 250);
+            setTimeout(() => {
+                let action;
+                tf.tidy(() => {
+                    action = game.bestMove(model, tf.stack([game.stateTensor(tf.tensor2d)]));
+                });
+
+                setTimeout(async () => {
+                    const square = await action;
+                    goOn(Math.floor(square / 8), square % 8);
+                }, 200);
+            }, 0);
+        } else if (game.isDone) {
+            document.querySelector('#disable').hidden = false;
+            document.querySelector('#done').hidden = false;
+
+            const [blackScore, whiteScore] = game.scores();
+            document.querySelector('#blackScore').textContent = blackScore;
+            document.querySelector('#whiteScore').textContent = whiteScore;
         }
     }
-});
+}
+
+for (const btn of document.querySelectorAll('#buttons button')) {
+    btn.addEventListener('click', () => play(btn.dataset.modelName));
+}
