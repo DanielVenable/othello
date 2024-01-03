@@ -48,6 +48,9 @@ async function train(steps, batchSize, learningRate, syncEveryFrames, replayBuff
             player2.updateTarget();
         }
 
+        // make sure the model is not lost if the program crashes
+        if (i % 200000 === 199999) save();
+
         const currentPlayer = game.turn === BLACK ? player1 : player2;
 
         currentPlayer.trainOnReplayBatch(batchSize, optimizer);
@@ -68,6 +71,10 @@ async function train(steps, batchSize, learningRate, syncEveryFrames, replayBuff
     return [player1.onlineNN, player2.onlineNN];
 }
 
+function save() {
+    return net.save(`file://${process.cwd()}/public/models/${process.env.MODEL_NAME ?? 'model'}`);
+}
+
 const [net] = await train(
     process.env.STEPS ?? 100000,
     process.env.BATCH_SIZE ?? 1000,
@@ -79,7 +86,7 @@ const [net] = await train(
     +(process.env.HIDDEN_LAYERS ?? 2),
     +(process.env.UNITS ?? 24));
 
-await net.save(`file://${process.cwd()}/public/models/${process.env.MODEL_NAME ?? 'model'}`);
+await save();
 
 console.log('Model saved.');
 
