@@ -2,13 +2,29 @@ import * as tf from '@tensorflow/tfjs-node';
 import { SingleBar, Presets } from 'cli-progress';
 
 import { Agent } from './agent.js';
+import { ReplayMemory } from './replayMemory.js';
 import { Game, BLACK, WHITE } from '../public/game.js';
 
-async function train(steps, batchSize, learningRate, syncEveryFrames, replayBufferSize, ...config) {
-    const game = new Game,
-        player1 = new Agent(game, BLACK, replayBufferSize, ...config),
-        player2 = new Agent(game, WHITE, replayBufferSize, ...config),
-        optimizer = tf.train.adam(learningRate);
+async function train({
+        STEPS = 100000, BATCH_SIZE = 1000, LEARNING_RATE = 0.01, SYNC_FREQ = 300,
+        REPLAY_BUFFER_SIZE = 20000, PLAY_ITSELF = 1, REWARD_EVERY_STEP = 1,
+        EPSILON = 0.1, HIDDEN_LAYERS = 2, UNITS = 24 }) {
+
+    const replayMemory = new ReplayMemory(REPLAY_BUFFER_SIZE);
+
+    const onlineNet1 = createNN(+HIDDEN_LAYERS, +UNITS),
+        targetNet1 = createNN(+HIDDEN_LAYERS, +UNITS);
+
+    const game = new Game;
+
+    const player1 = new Agent(game, BLACK, replayMemory,
+        !!+REWARD_EVERY_STEP, EPSILON, onlineNet1, targetNet1);
+
+    const player2 = new Agent(game, WHITE, replayMemory, !!+REWARD_EVERY_STEP, EPSILON,
+        !!+PLAY_ITSELF ? onlineNet1 : createNN(+HIDDEN_LAYERS, +UNITS),
+        !!+PLAY_ITSELF ? targetNet1 : createNN(+HIDDEN_LAYERS, +UNITS));
+
+    const optimizer = tf.train.adam(+LEARNING_RATE);
 
     const barFormat = '{bar} {value}/{total} | {percentage}% | {eta_formatted} remaining';
 
@@ -18,10 +34,10 @@ async function train(steps, batchSize, learningRate, syncEveryFrames, replayBuff
         hideCursor: true
     }, Presets.shades_classic);
 
-    replayBar.start(replayBufferSize * 2, 0);
+    replayBar.start(REPLAY_BUFFER_SIZE, 0);
 
     // fill the replay buffer with random moves without learning
-    for (let i = 0; i < replayBufferSize * 2; i++) {
+    for (let i = 0; i < REPLAY_BUFFER_SIZE; i++) {
         await (game.turn === BLACK ? player1 : player2).doMove();
         if (game.isDone) {
             game.reset();
@@ -39,21 +55,21 @@ async function train(steps, batchSize, learningRate, syncEveryFrames, replayBuff
         hideCursor: true
     }, Presets.shades_classic);
 
-    trainingBar.start(steps, 0);
+    trainingBar.start(STEPS, 0);
 
     // do moves and learn from them
-    for (let i = 0; i < steps; i++) {
-        if (i % syncEveryFrames === 0) {
+    for (let i = 0; i < STEPS; i++) {
+        if (i % SYNC_FREQ === 0) {
             player1.updateTarget();
             player2.updateTarget();
         }
 
         // make sure the model is not lost if the program crashes
-        if (i % 200000 === 199999) save();
+        if (i % 150000 === 149999) save(player1.onlineNN);
 
         const currentPlayer = game.turn === BLACK ? player1 : player2;
 
-        currentPlayer.trainOnReplayBatch(batchSize, optimizer);
+        currentPlayer.trainOnReplayBatch(BATCH_SIZE, optimizer);
 
         await currentPlayer.doMove();
 
@@ -71,22 +87,31 @@ async function train(steps, batchSize, learningRate, syncEveryFrames, replayBuff
     return [player1.onlineNN, player2.onlineNN];
 }
 
-function save() {
+function save(net) {
     return net.save(`file://${process.cwd()}/public/models/${process.env.MODEL_NAME ?? 'model'}`);
 }
 
-const [net] = await train(
-    process.env.STEPS ?? 100000,
-    process.env.BATCH_SIZE ?? 1000,
-    process.env.LEARNING_RATE ?? 0.01,
-    process.env.SYNC_FREQ ?? 300,
-    process.env.REPLAY_BUFFER_SIZE ?? 20000,
-    !!+(process.env.REWARD_EVERY_STEP ?? 1),
-    process.env.EPSILON ?? 0.1,
-    +(process.env.HIDDEN_LAYERS ?? 2),
-    +(process.env.UNITS ?? 24));
+function createNN(hiddenLayers, units) {
+    const net = tf.sequential();
 
-await save();
+    // input and flatten layers
+    net.add(tf.layers.flatten({ inputShape: [8, 8] }));
+
+    // hidden layers
+    for (let i = 0; i < hiddenLayers; i++) {
+        net.add(tf.layers.dense({ units, activation: 'relu' }));
+    }
+
+    // output layer. there are 64 possible actions, so there are 64 units at end
+    net.add(tf.layers.dense({ units: 64, activation: 'linear' }));
+
+    net.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+    return net;
+}
+
+const [net] = await train(process.env);
+
+await save(net);
 
 console.log('Model saved.');
 

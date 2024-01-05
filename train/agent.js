@@ -9,21 +9,15 @@ export class Agent {
     /**
      * @param {Game} game
      * @param {-1 | 1} color black or white
-     * @param {Number} replayBufferSize how much game history to store in memory
+     * @param {ReplayMemory} replayMemory game history for learning
      * @param {Boolean} rewardEveryStep does it give rewards after every step or only at the end
      * @param {Number} epsilon how often to pick a random move
-     * @param {Number} layers how many hidden layers in the model
-     * @param {Number} units how many units those hidden layers have
+     * @param {Number} onlineNN the online net
+     * @param {Number} targetNN the target net
      */
-    constructor(game, color, replayBufferSize, rewardEveryStep, epsilon, layers, units) {
-        this.game = game;
-        this.color = color;
-        this.rewardEveryStep = rewardEveryStep;
-        this.epsilon = epsilon;
-        this.replayMemory = new ReplayMemory(replayBufferSize);
-
-        this.targetNN = createNN(layers, units);
-        this.onlineNN = createNN(layers, units);
+    constructor(...args) {
+        [this.game, this.color, this.replayMemory, this.rewardEveryStep, this.epsilon,
+            this.onlineNN, this.targetNN] = args;
     }
     
     /** pick one move */
@@ -65,7 +59,7 @@ export class Agent {
      */
     reward(state) {
         if (this.rewardEveryStep) {
-            return state.sum().sub(this.lastState.sum());
+            return tf.tidy(() => state.sum().sub(this.lastState.sum()));
         } else {
             return this.game.isDone ? state.sum() : tf.scalar(0);
         }
@@ -115,53 +109,5 @@ export class Agent {
             // to the weights of the online DQN.
             optimizer.applyGradients(tf.variableGrads(loss).grads);
         });
-    }
-}
-
-function createNN(hiddenLayers, units) {
-    const net = tf.sequential();
-
-    // input and flatten layers
-    net.add(tf.layers.flatten({ inputShape: [8, 8] }));
-
-    // hidden layers
-    for (let i = 0; i < hiddenLayers; i++) {
-        net.add(tf.layers.dense({ units, activation: 'relu' }));
-    }
-
-    // output layer. there are 64 possible actions, so there are 64 units at end
-    net.add(tf.layers.dense({ units: 64, activation: 'linear' }));
-
-    net.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
-    return net;
-}
-
-class ReplayMemory {
-    index = 0;
-    items = [];
-
-    constructor(maxSize) {
-        this.maxSize = maxSize;
-    }
-
-    /** add an item, removing the first item to enter */
-    append(item) {
-        if (this.items.length < this.maxSize) {
-            this.items.push(item);
-        } else {
-            // dispose tensors to prevent memory leaks
-            tf.dispose([this.items[this.index].state, this.items[this.index].reward]);
-
-            this.items[this.index] = item;
-            this.index = (this.index + 1) % this.items.length;
-        }
-    }
-
-    randomItem() {
-        return this.items[Math.floor(Math.random() * this.items.length)];
-    }
-
-    *sample(num) {
-        while (num--) yield this.randomItem();
     }
 }
