@@ -2,7 +2,11 @@ import { Game, BLACK, WHITE } from './game.js';
 
 const load = new Promise(resolve => document.querySelector('#board').addEventListener('load', resolve));
 
+let started = false;
 async function play(modelName) {
+    if (started) return;
+    started = true;
+
     document.querySelector('#buttons').hidden = true;
     document.querySelector('#loading').hidden = false;
 
@@ -11,11 +15,19 @@ async function play(modelName) {
     const model = await tf.loadLayersModel(`models/${modelName}/model.json`);
     const game = new Game;
 
-    await load;
-    const board = document.querySelector('#board').contentDocument;
+    // warm up the model
+    tf.tidy(() => {
+        model.predict(tf.stack([game.stateTensor(tf.tensor2d)]));
+    });
 
+    // make sure the board is loaded
+    await load;
+
+    // done loading!
     document.querySelector('#loading').hidden = true;
     document.querySelector('#disable').hidden = true;
+
+    const board = document.querySelector('#board').contentDocument;
 
     board.addEventListener('click', ({ target }) => {
         if (game.turn === playerTurn) {
@@ -34,11 +46,8 @@ async function play(modelName) {
         board.querySelector(`use[x="${x}"][y="${y}"]`)
             .setAttribute('href', color === BLACK ? '#black' : '#white');
 
-        for (const [x, y] of toFlip) {
-            board.querySelector(`use[x="${x}"][y="${y}"]`)
-                .setAttribute('href', color === BLACK ? '#black' : '#white');
-        }
-        
+        flip(toFlip, color === BLACK);
+
         if (game.turn === botTurn) {
             setTimeout(() => {
                 let action;
@@ -58,6 +67,39 @@ async function play(modelName) {
             const [blackScore, whiteScore] = game.scores();
             document.querySelector('#blackScore').textContent = blackScore;
             document.querySelector('#whiteScore').textContent = whiteScore;
+        }
+    }
+
+    function flip(pieces, isToBlack) {
+        const duration = 200;
+        const ellipse = board.querySelector('#flip ellipse');
+        ellipse.setAttribute('fill', isToBlack ? 'white' : 'black');
+
+        let flipped = false;
+        let beginTime = performance.now();
+
+        changeHref('#flip');
+        requestAnimationFrame(frame);
+
+        function changeHref(value) {
+            for (const [x, y] of pieces) {
+                board.querySelector(`use[x="${x}"][y="${y}"]`).setAttribute('href', value);
+            }
+        }
+
+        function frame() {
+            const delta = performance.now() - beginTime;
+            ellipse.setAttribute('ry', 0.45 * Math.cos(delta * Math.PI / duration));
+            if (!flipped && delta >= duration / 2) {
+                ellipse.setAttribute('fill', isToBlack ? 'black' : 'white');
+                flipped = true;
+            }
+
+            if (delta >= duration) {
+                changeHref(isToBlack ? '#black' : '#white');
+            } else {
+                requestAnimationFrame(frame);
+            }
         }
     }
 }

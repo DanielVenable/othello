@@ -12,19 +12,9 @@
             <use href="#square"/>
             <circle cx="0.5" cy="0.5" r="0.45" fill="white"/>
         </g>
-        <g id="flip-to-black">
+        <g id="flip">
             <use href="#square"/>
-            <ellipse cx="0.5" cy="0.5" rx="0.45" ry="0.45" fill="white">
-                <animate attributeName="ry" values="0.45;0;0.45" dur="0.5s" keyTimes="0;0.5;1" begin="0s"/>
-                <animate attributeName="fill" from="white" to="black" dur="0.001s" begin="0.25s"/>
-            </ellipse>
-        </g>
-        <g id="flip-to-white">
-            <use href="#square"/>
-            <ellipse cx="0.5" cy="0.5" rx="0.45" ry="0.45" fill="black">
-                <animate attributeName="ry" values="0.45;0;0.45" dur="0.5s" keyTimes="0;0.5;1" begin="0s"/>
-                <animate attributeName="fill" from="black" to="white" dur="0.001s" begin="0.25s"/>
-            </ellipse>
+            <ellipse cx="0.5" cy="0.5" rx="0.45" ry="0.45"/>
         </g>
     </defs>
 
