@@ -17,7 +17,7 @@ async function play(modelName) {
 
     // warm up the model
     tf.tidy(() => {
-        model.predict(tf.stack([game.stateTensor(tf.tensor2d)]));
+        game.bestMove(model, tf.stack([game.stateTensor(tf.tensor2d)]));
     });
 
     // make sure the board is loaded
@@ -28,6 +28,8 @@ async function play(modelName) {
     document.querySelector('#disable').hidden = true;
 
     const board = document.querySelector('#board').contentDocument;
+
+    updateValid();
 
     board.addEventListener('click', ({ target }) => {
         if (game.turn === playerTurn) {
@@ -48,19 +50,22 @@ async function play(modelName) {
 
         flip(toFlip, color === BLACK);
 
+        if (color === playerTurn) {
+            removeValid();
+        }
+
         if (game.turn === botTurn) {
-            setTimeout(() => {
+            setTimeout(async () => {
                 let action;
                 tf.tidy(() => {
                     action = game.bestMove(model, tf.stack([game.stateTensor(tf.tensor2d)]));
                 });
-
-                setTimeout(async () => {
-                    const square = await action;
-                    goOn(Math.floor(square / 8), square % 8);
-                }, 200);
-            }, 0);
-        } else if (game.isDone) {
+                const square = await action;
+                goOn(Math.floor(square / 8), square % 8);
+            }, 200);
+        } else if (game.turn === playerTurn) {
+            updateValid();
+        } else {
             document.querySelector('#disable').hidden = false;
             document.querySelector('#done').hidden = false;
 
@@ -100,6 +105,21 @@ async function play(modelName) {
             } else {
                 requestAnimationFrame(frame);
             }
+        }
+    }
+
+    function updateValid() {
+        game.validMoves.forEach((isValid, action) => {
+            if (isValid) {
+                board.querySelector(`use[x="${Math.floor(action / 8)}"][y="${action % 8}"]`)
+                    .setAttribute('href', '#valid');
+            }
+        });
+    }
+
+    function removeValid() {
+        for (const square of board.querySelectorAll('use[href="#valid"]')) {
+            square.setAttribute('href', '#square');
         }
     }
 }

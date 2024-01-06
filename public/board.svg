@@ -16,6 +16,10 @@
             <use href="#square"/>
             <ellipse cx="0.5" cy="0.5" rx="0.45" ry="0.45"/>
         </g>
+        <g id="valid">
+            <use href="#square"/>
+            <circle cx="0.5" cy="0.5" r="0.4" fill="none" stroke="#00000050" stroke-width="0.03"/>
+        </g>
     </defs>
 
     <use href="#square" x="0" y="0"/>
