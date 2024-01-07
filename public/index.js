@@ -62,7 +62,7 @@ async function play(modelName) {
                 });
                 const square = await action;
                 goOn(Math.floor(square / 8), square % 8);
-            }, 200);
+            }, 550);
         } else if (game.turn === playerTurn) {
             updateValid();
         } else {
@@ -125,5 +125,11 @@ async function play(modelName) {
 }
 
 for (const btn of document.querySelectorAll('#buttons button')) {
-    btn.addEventListener('click', () => play(btn.dataset.modelName));
+    btn.addEventListener('click', () => play(btn.dataset.modelName).catch(showError));
+}
+
+function showError(err) {
+    document.querySelectorAll('#error, #disable').forEach(a => a.hidden = false);
+    document.querySelectorAll('#loading, #buttons, #done').forEach(a => a.hidden = true);
+    console.error(err);
 }
