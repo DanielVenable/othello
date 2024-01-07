@@ -65,7 +65,7 @@ async function train({
         }
 
         // make sure the model is not lost if the program crashes
-        if (i % 150000 === 149999) save(player1.onlineNN);
+        if (i % 150000 === 149999) await save(player1.onlineNN);
 
         const currentPlayer = game.turn === BLACK ? player1 : player2;
 
