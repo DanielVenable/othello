@@ -8,12 +8,19 @@ import { Game, BLACK, WHITE } from '../public/game.js';
 async function train({
         STEPS = 100000, BATCH_SIZE = 1000, LEARNING_RATE = 0.01, SYNC_FREQ = 300,
         REPLAY_BUFFER_SIZE = 20000, PLAY_ITSELF = 1, REWARD_EVERY_STEP = 1,
-        EPSILON = 0.1, HIDDEN_LAYERS = 2, UNITS = 24 }) {
+        EPSILON = 0.1, HIDDEN_LAYERS = 2, UNITS = 24, FROM_MODEL }) {
+
+    async function getNet() {
+        return FROM_MODEL ?
+            await tf.loadLayersModel(
+                `file://${process.cwd()}/public/models/${FROM_MODEL}/model.json`) :
+            createNN(+HIDDEN_LAYERS, +UNITS);
+    }
 
     const replayMemory = new ReplayMemory(REPLAY_BUFFER_SIZE);
 
-    const onlineNet1 = createNN(+HIDDEN_LAYERS, +UNITS),
-        targetNet1 = createNN(+HIDDEN_LAYERS, +UNITS);
+    const onlineNet1 = await getNet(),
+        targetNet1 = await getNet();
 
     const game = new Game;
 
@@ -21,8 +28,8 @@ async function train({
         !!+REWARD_EVERY_STEP, EPSILON, onlineNet1, targetNet1);
 
     const player2 = new Agent(game, WHITE, replayMemory, !!+REWARD_EVERY_STEP, EPSILON,
-        !!+PLAY_ITSELF ? onlineNet1 : createNN(+HIDDEN_LAYERS, +UNITS),
-        !!+PLAY_ITSELF ? targetNet1 : createNN(+HIDDEN_LAYERS, +UNITS));
+        !!+PLAY_ITSELF ? onlineNet1 : await getNet(),
+        !!+PLAY_ITSELF ? targetNet1 : await getNet());
 
     const optimizer = tf.train.adam(+LEARNING_RATE);
 
